@@ -88,7 +88,7 @@ public class WalkWithYou extends Activity  {
 						shortestDistance = currentDistance;
 					}
 				}
-				changeColor(1);
+				changeColor(51);
 			}
 		} else {
 			//TODO basically the update comes too soon before a location has been found by the device
@@ -102,24 +102,33 @@ public class WalkWithYou extends Activity  {
 			methers = 100;
 		}
 		//greenish
-		if(methers <= 33) {
-			int scaledNumber = (int) (methers * 7.7272727272);
-			methers = 33 - methers;
+		if(methers <= 50) {
+			if(methers > 45) {
+				methers = 6;
+			} else {
+				methers = 50 - methers;
+			}
+			int scaledNumber = (int) ((methers  * 5.1));
 			String greenday = Integer.toHexString(scaledNumber);
-			theColorie += "00" + greenday + "00";
-		}
-		//blueish
-		else if(methers <= 66 && methers > 33) {
-			int scaledNumber = (int) ((methers / 2) * 7.7272727272);
-			String blueballs = Integer.toHexString(scaledNumber);
-			theColorie += "0000" + blueballs;
+			theColorie += "00";
+			System.out.println(greenday.length());
+			if(greenday.length() == 1) {
+				theColorie += "0";
+			}
+			theColorie += greenday + "00";
 		}
 		//reddish
-		else {
-			int scaledNumber = (int) ((methers / 3) * 7.7272727272);
-			String REDDITZ = Integer.toHexString(scaledNumber);
-			theColorie += REDDITZ + "0000";
+		else  {
+			methers = 100 - (methers - 50);
+			int scaledNumber = (int) (methers / 2 * 5.1);
+			String blueballs = Integer.toHexString(scaledNumber);
+			if(blueballs.length() == 1) {
+				theColorie += "0";
+			}
+			theColorie += blueballs + "0000";
 		}
+		
+		
 
 
 		//		String red = Integer.toHexString(methers);
