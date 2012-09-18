@@ -1,9 +1,9 @@
 package eu.uniek.wwy;
 
-public class Locatie {
+public class GPSLocation {
 	private double latitude, longitude;
 
-	public Locatie(double latitude, double longitude) {
+	public GPSLocation(double latitude, double longitude) {
 		super();
 		this.latitude = latitude;
 		this.longitude = longitude;

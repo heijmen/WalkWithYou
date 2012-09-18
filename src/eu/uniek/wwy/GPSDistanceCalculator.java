@@ -4,7 +4,7 @@ import java.util.List;
 
 public class GPSDistanceCalculator {
 	
-	public int calculateDistanceBetweenCoordinatesInMethers(Locatie firstLocation, Locatie secondLocation) {	
+	public int calculateDistanceBetweenCoordinatesInMethers(GPSLocation firstLocation, GPSLocation secondLocation) {	
 		double radius = 6371;
 		double latencyDifference = Math.toRadians(secondLocation.getLatitude() - firstLocation.getLatitude());
 		double longitudeDifference = Math.toRadians(secondLocation.getLongitude() - firstLocation.getLongitude());
@@ -16,8 +16,8 @@ public class GPSDistanceCalculator {
 		double distanceInMethers = radius * ofwaarcvoorstaat;
 		return ((int) distanceInMethers) * 100;
 	}
-	public boolean locatieExists(Locatie newLocation, List<Locatie> locaties) {
-		for(Locatie oldLocation : locaties) {
+	public boolean locatieExists(GPSLocation newLocation, List<GPSLocation> locaties) {
+		for(GPSLocation oldLocation : locaties) {
 			if(calculateDistanceBetweenCoordinatesInMethers(newLocation, oldLocation) >= 10) {
 				return true;
 			}
