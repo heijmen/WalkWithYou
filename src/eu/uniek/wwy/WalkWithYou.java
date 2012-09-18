@@ -61,7 +61,7 @@ public class WalkWithYou extends Activity  {
 		GPSDistanceCalculator gps = new GPSDistanceCalculator();
 		int shortestDistance = 0; 
 		for (Locatie iterativeLocation : locaties) {
-			int currentDistance = gps.calculate(iterativeLocation, huidigeLocatie);
+			int currentDistance = gps.calculateDistanceBetweenCoordinatesInMethers(iterativeLocation, huidigeLocatie);
 			if (shortestDistance != 0) {
 				shortestDistance = currentDistance;
 			} else {
