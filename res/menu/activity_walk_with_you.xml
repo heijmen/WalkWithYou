@@ -2,4 +2,7 @@
     <item android:id="@+id/menu_settings"
         android:title="@string/menu_settings"
         android:orderInCategory="100" />
+    <group android:id="@+id/group1">
+        <item android:id="@+id/item1" android:title="update"></item>
+    </group>
 </menu>

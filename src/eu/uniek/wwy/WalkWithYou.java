@@ -2,8 +2,6 @@ package eu.uniek.wwy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -22,7 +20,7 @@ import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
-public class WalkWithYou extends Activity  {
+public class WalkWithYou extends Activity {
 	private LocationManager locationManager = null;  
 	private LocationListener locationListener = null;
 	private List<GPSLocation> locations;
@@ -39,7 +37,7 @@ public class WalkWithYou extends Activity  {
 		if (flag) {  			
 			//waiting  
 			locationListener = new MyLocationListener();  
-			locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 10,locationListener);  
+			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10,locationListener);  
 		} else {  
 			//mislukt  
 		}  
@@ -56,7 +54,7 @@ public class WalkWithYou extends Activity  {
 		framelayout.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				if(huidigeLocatie != null) {
-					locations.add(huidigeLocatie);
+					locations.add(new GPSLocation(huidigeLocatie.getLatitude(), huidigeLocatie.getLongitude()));
 					Toast.makeText(context, "added location", Toast.LENGTH_LONG).show();
 					update();
 				} else {
@@ -79,8 +77,13 @@ public class WalkWithYou extends Activity  {
 		if(huidigeLocatie != null) {
 			GPSDistanceCalculator gps = new GPSDistanceCalculator();
 			int shortestDistance = 0; 
+			int i = 1;
+			String whatever = "";
+			whatever += "huidigeLocatie = " + huidigeLocatie.getLongitude() + ", " + huidigeLocatie.getLatitude() + "\n";
 			for (GPSLocation iterativeLocation : locations) {
+				whatever += "locatie" + i+ " = " + iterativeLocation.getLongitude() + ", " + iterativeLocation.getLatitude() + "\n";
 				int currentDistance = gps.calculateDistanceBetweenCoordinatesInMethers(iterativeLocation, huidigeLocatie);
+				whatever += "Debug locatie 1 current distance: " + currentDistance;
 				if (shortestDistance == 0) {
 					shortestDistance = currentDistance;
 				} else {
@@ -88,15 +91,18 @@ public class WalkWithYou extends Activity  {
 						shortestDistance = currentDistance;
 					}
 				}
-				changeColor(80);
+				i++;
 			}
+			whatever += "shortestdistance: " + shortestDistance; 
+			Toast.makeText(this, whatever, Toast.LENGTH_LONG).show();
+			changeColor(shortestDistance);
 		} else {
 			//TODO basically the update comes too soon before a location has been found by the device
 		}
 	}
 
 	private void changeColor(int methers) {
-		int[] shapecolor = new int[] {getColor(methers), getColor(methers)};
+		int[] shapecolor = new int[] {Color.parseColor(getColor(methers)), Color.parseColor(getColor(methers))};
 		FrameLayout framelayout1 = (FrameLayout) findViewById(R.id.frameLayout1);
 		GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, shapecolor);
 		gd.setCornerRadius(GradientDrawable.RECTANGLE);
@@ -118,7 +124,6 @@ public class WalkWithYou extends Activity  {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.activity_walk_with_you, menu);
-
 		return true;
 	}
 
@@ -137,54 +142,24 @@ public class WalkWithYou extends Activity  {
 		}
 	}
 	
-	public static String hsvToRgb(float hue, float saturation, float value) {
-	    float r, g, b;
-
-	    int h = (int)(hue * 6);
-	    float f = hue * 6 - h;
-	    float p = value * (1 - saturation);
-	    float q = value * (1 - f * saturation);
-	    float t = value * (1 - (1 - f) * saturation);
-
-	    if (h == 0) {
-	        r = value;
-	        g = t;
-	        b = p;
-	    } else if (h == 1) {
-	        r = q;
-	        g = value;
-	        b = p;
-	    } else if (h == 2) {
-	        r = p;
-	        g = value;
-	        b = t;
-	    } else if (h == 3) {
-	        r = p;
-	        g = q;
-	        b = value;
-	    } else if (h == 4) {
-	        r = t;
-	        g = p;
-	        b = value;
-	    } else if (h == 5) {
-	        r = value;
-	        g = p;
-	        b = q;
-	    } else {
-	        throw new RuntimeException("Something went wrong when converting from HSV to RGB. Input was " + hue + ", " + saturation + ", " + value);
-	    }
-
-	    String rs = Integer.toHexString((int)(r * 256));
-	    String gs = Integer.toHexString((int)(g * 256));
-	    String bs = Integer.toHexString((int)(b * 256));
-	    return rs + gs + bs;
-	}
-	
-	public int getColor(double power)
+	public String getColor(int power)
 	{
-		double R=(255*power)/100;
-		double G=(255*(100-power))/100; 
-		double B=0;
-	    return Color.argb(255, Color.red((int) R), Color.green((int) G), Color.blue((int) B));
+		String colorString = "#FF";
+		int R=(255*power)/100;
+		int G=(255*(100-power))/100; 
+		int B=0;
+		String redString = Integer.toHexString(R);
+		if(redString.length() == 1) {
+			colorString += "0";
+		}
+		colorString += redString;
+		
+		String greenString = Integer.toHexString(G);
+		if(greenString.length() == 1) {
+			colorString += "0";
+		}
+		colorString += greenString;
+		colorString += "00";
+		return colorString;
 	}
 }  
