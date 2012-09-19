@@ -88,7 +88,7 @@ public class WalkWithYou extends Activity  {
 						shortestDistance = currentDistance;
 					}
 				}
-				changeColor(51);
+				changeColor(99);
 			}
 		} else {
 			//TODO basically the update comes too soon before a location has been found by the device
@@ -96,52 +96,7 @@ public class WalkWithYou extends Activity  {
 	}
 
 	private void changeColor(int methers) {
-		String theColorie = "#FF";
-
-		if (methers > 100) {
-			methers = 100;
-		}
-		//greenish
-		if(methers <= 50) {
-			if(methers > 45) {
-				methers = 6;
-			} else {
-				methers = 50 - methers;
-			}
-			int scaledNumber = (int) ((methers  * 5.1));
-			String greenday = Integer.toHexString(scaledNumber);
-			theColorie += "00";
-			System.out.println(greenday.length());
-			if(greenday.length() == 1) {
-				theColorie += "0";
-			}
-			theColorie += greenday + "00";
-		}
-		//reddish
-		else  {
-			methers = 100 - (methers - 50);
-			int scaledNumber = (int) (methers / 2 * 5.1);
-			String blueballs = Integer.toHexString(scaledNumber);
-			if(blueballs.length() == 1) {
-				theColorie += "0";
-			}
-			theColorie += blueballs + "0000";
-		}
-		
-		
-
-
-		//		String red = Integer.toHexString(methers);
-		//		if (red.length() == 1) {
-		//			red = "0" + red;
-		//		}
-		//		String green = Integer.toHexString(255 - methers);
-		//		if (green.length() == 1) {
-		//			green = "0" + green;
-		//		}
-		//		int afstandKleur = (int) Long.parseLong("FF" +  red.toUpperCase() + "" + green.toUpperCase() + "00",16);
-		System.out.println(theColorie);
-		int[] shapecolor = new int[] {Color.parseColor(theColorie), Color.parseColor(theColorie)};
+		int[] shapecolor = new int[] {Color.parseColor(getColor(methers)), Color.parseColor(getColor(methers))};
 		FrameLayout framelayout1 = (FrameLayout) findViewById(R.id.frameLayout1);
 		GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, shapecolor);
 		gd.setCornerRadius(GradientDrawable.RECTANGLE);
@@ -180,5 +135,56 @@ public class WalkWithYou extends Activity  {
 
 		public void onStatusChanged(String provider, int status, Bundle extras) {
 		}
+	}
+	
+	public static String hsvToRgb(float hue, float saturation, float value) {
+	    float r, g, b;
+
+	    int h = (int)(hue * 6);
+	    float f = hue * 6 - h;
+	    float p = value * (1 - saturation);
+	    float q = value * (1 - f * saturation);
+	    float t = value * (1 - (1 - f) * saturation);
+
+	    if (h == 0) {
+	        r = value;
+	        g = t;
+	        b = p;
+	    } else if (h == 1) {
+	        r = q;
+	        g = value;
+	        b = p;
+	    } else if (h == 2) {
+	        r = p;
+	        g = value;
+	        b = t;
+	    } else if (h == 3) {
+	        r = p;
+	        g = q;
+	        b = value;
+	    } else if (h == 4) {
+	        r = t;
+	        g = p;
+	        b = value;
+	    } else if (h == 5) {
+	        r = value;
+	        g = p;
+	        b = q;
+	    } else {
+	        throw new RuntimeException("Something went wrong when converting from HSV to RGB. Input was " + hue + ", " + saturation + ", " + value);
+	    }
+
+	    String rs = Integer.toHexString((int)(r * 256));
+	    String gs = Integer.toHexString((int)(g * 256));
+	    String bs = Integer.toHexString((int)(b * 256));
+	    return rs + gs + bs;
+	}
+	
+	public String getColor(double power)
+	{
+	    float H = (float) (power * 0.4); // Hue (note 0.4 = Green, see huge chart below)
+	    float S = (float) 0.9; // Saturation
+	    float B = (float) 0.9; // Brightness
+	    return hsvToRgb(H, S, B);
 	}
 }  
