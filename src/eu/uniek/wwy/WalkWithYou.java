@@ -47,8 +47,6 @@ public class WalkWithYou extends Activity {
 		gd.setShape(GradientDrawable.OVAL);
 		gd.setSize(480,480);
 		framelayout.setBackgroundDrawable(gd);
-
-		final Context context = this;
 		framelayout.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				if(huidigeLocatie != null) {
@@ -80,7 +78,7 @@ public class WalkWithYou extends Activity {
 	Runnable updateRunnable = new Runnable() {
 		public void run() {
 			update();
-			updateHandler.postDelayed(updateRunnable, 3000);
+			updateHandler.postDelayed(updateRunnable, 5000);
 		}
 	};
 
@@ -106,14 +104,14 @@ public class WalkWithYou extends Activity {
 			toastText += "shortestdistance: " + shortestDistance; 
 			showToast(toastText);
 
-			changeColor(shortestDistance);
+			changeColor(25);
 		} else {
 			//TODO basically the update comes too soon before a location has been found by the device
 		}
 	}
 
 	private void changeColor(int methers) {
-		int[] shapecolor = new int[] {Color.parseColor(getColor(methers)), Color.parseColor(getColor(methers))};
+		int[] shapecolor = new int[] {getColorOnScaleOf50(methers), getColorOnScaleOf50(methers)};
 		FrameLayout framelayout1 = (FrameLayout) findViewById(R.id.frameLayout1);
 		GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, shapecolor);
 		gd.setCornerRadius(GradientDrawable.RECTANGLE);
@@ -144,29 +142,25 @@ public class WalkWithYou extends Activity {
 		}
 	}
 
-	public String getColor(int power)
-	{
+	public int getColorOnScaleOf100(int power) {
 		power++;
-//		power *= 4;
 		if(power > 100) {
 			power = 100;
 		}
-		String colorString = "#FF";
-		int R=(255*power)/100;
-		int G=(255*(100-power))/100; 
-		String redString = Integer.toHexString(R);
-		if(redString.length() == 1) {
-			colorString += "0";
+		int H = (int) (power * 1.2);
+		int S = 100;
+		int V = 100;
+		return Color.HSVToColor(new float[] {H, S, V});
+	}
+	public int getColorOnScaleOf50(int power) {
+		power++;
+		if(power > 50) {
+			power = 50;
 		}
-		colorString += redString;
-
-		String greenString = Integer.toHexString(G);
-		if(greenString.length() == 1) {
-			colorString += "0";
-		}
-		colorString += greenString;
-		colorString += "00";
-		return colorString;
+		int H = (int) (power * 2.4);
+		int S = 100;
+		int V = 100;
+		return Color.HSVToColor(new float[] {H, S, V});
 	}
 
 	@Override
