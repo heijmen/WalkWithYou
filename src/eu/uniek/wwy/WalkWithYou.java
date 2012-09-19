@@ -31,16 +31,19 @@ public class WalkWithYou extends Activity {
 	private Handler updateHandler;
 	private GPSDistanceCalculator gps;
 	private Toast toast;
+	private GPSLocation cafetariaChao;  //27.4388 km vanaf gouda hemelsbreed  100m vanaf oudenoord 250 meter vanaf nijenoord allemaal hemelsbreed
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) { 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_walk_with_you);
+		cafetariaChao = new GPSLocation(52.10164, 5.10838);
 		gps = new GPSDistanceCalculator();
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);  
 		locationListener = new MyLocationListener();  
 		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 10,locationListener);  
 		locations = new ArrayList<GPSLocation>();
+		locations.add(cafetariaChao);
 		FrameLayout framelayout = (FrameLayout) findViewById(R.id.frameLayout1);
 		GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[] {0xFF131313, 0xFF392399});
 		gd.setCornerRadius(0f);
@@ -89,9 +92,9 @@ public class WalkWithYou extends Activity {
 			String toastText = "";
 			toastText += "huidigeLocatie = " + huidigeLocatie.getLongitude() + ", " + huidigeLocatie.getLatitude() + "\n";
 			for (GPSLocation iterativeLocation : locations) {
-				toastText += "locatie" + i+ " = " + iterativeLocation.getLongitude() + ", " + iterativeLocation.getLatitude() + "\n";
+				toastText += "locatie" + i + " = " + iterativeLocation.getLongitude() + ", " + iterativeLocation.getLatitude() + "\n";
 				int currentDistance = gps.calculateDistanceBetweenCoordinatesInMethers(iterativeLocation, huidigeLocatie);
-				toastText += "Debug locatie 1 current distance: " + currentDistance;
+				toastText += "Debug locatie " + i + " current distance: " + currentDistance + "\n";
 				if (shortestDistance == 0) {
 					shortestDistance = currentDistance;
 				} else {
@@ -104,7 +107,7 @@ public class WalkWithYou extends Activity {
 			toastText += "shortestdistance: " + shortestDistance; 
 			showToast(toastText);
 
-			changeColor(25);
+			changeColor(shortestDistance);
 		} else {
 			//TODO basically the update comes too soon before a location has been found by the device
 		}
@@ -143,6 +146,7 @@ public class WalkWithYou extends Activity {
 	}
 
 	public int getColorOnScaleOf100(int power) {
+		power = 100 - power;
 		power++;
 		if(power > 100) {
 			power = 100;
@@ -153,6 +157,7 @@ public class WalkWithYou extends Activity {
 		return Color.HSVToColor(new float[] {H, S, V});
 	}
 	public int getColorOnScaleOf50(int power) {
+		power = 50 - power;
 		power++;
 		if(power > 50) {
 			power = 50;

@@ -14,7 +14,7 @@ public class GPSDistanceCalculator {
 		        Math.sin(longitudeDifference/2) * Math.sin(longitudeDifference/2) * Math.cos(firstLatitudeInRadians) * Math.cos(secondLatitudeInRadians); 
 		double ofwaarcvoorstaat = 2 * Math.atan2(Math.sqrt(weetnietwaaravoorstaat), Math.sqrt(1-weetnietwaaravoorstaat)); 
 		double distanceInMethers = radius * ofwaarcvoorstaat;
-		distanceInMethers *= 100;
+		distanceInMethers *= 1000;
 		return (int) distanceInMethers;
 	}
 	public boolean locatieExists(GPSLocation newLocation, List<GPSLocation> locaties) {
