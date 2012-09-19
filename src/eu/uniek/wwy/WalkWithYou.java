@@ -88,7 +88,7 @@ public class WalkWithYou extends Activity  {
 						shortestDistance = currentDistance;
 					}
 				}
-				changeColor(99);
+				changeColor(80);
 			}
 		} else {
 			//TODO basically the update comes too soon before a location has been found by the device
@@ -96,7 +96,7 @@ public class WalkWithYou extends Activity  {
 	}
 
 	private void changeColor(int methers) {
-		int[] shapecolor = new int[] {Color.parseColor(getColor(methers)), Color.parseColor(getColor(methers))};
+		int[] shapecolor = new int[] {getColor(methers), getColor(methers)};
 		FrameLayout framelayout1 = (FrameLayout) findViewById(R.id.frameLayout1);
 		GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, shapecolor);
 		gd.setCornerRadius(GradientDrawable.RECTANGLE);
@@ -180,11 +180,11 @@ public class WalkWithYou extends Activity  {
 	    return rs + gs + bs;
 	}
 	
-	public String getColor(double power)
+	public int getColor(double power)
 	{
-	    float H = (float) (power * 0.4); // Hue (note 0.4 = Green, see huge chart below)
-	    float S = (float) 0.9; // Saturation
-	    float B = (float) 0.9; // Brightness
-	    return hsvToRgb(H, S, B);
+		double R=(255*power)/100;
+		double G=(255*(100-power))/100; 
+		double B=0;
+	    return Color.argb(255, Color.red((int) R), Color.green((int) G), Color.blue((int) B));
 	}
 }  
