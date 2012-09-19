@@ -2,6 +2,7 @@ package eu.uniek.wwy;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import android.app.Activity;
 import android.content.ContentResolver;
@@ -20,29 +21,26 @@ import android.view.View.OnClickListener;
 import android.widget.FrameLayout;
 import android.widget.Toast;
 
+
 public class WalkWithYou extends Activity {
 	private LocationManager locationManager = null;  
 	private LocationListener locationListener = null;
 	private List<GPSLocation> locations;
 	private GPSLocation huidigeLocatie;
-	private boolean flag = false;
-	private Handler updatethingy;
+//	private boolean flag = false;
+	private Handler updateHandler;
+	private GPSDistanceCalculator gps;
+	private Toast toast;
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) {
+	public void onCreate(Bundle savedInstanceState) { 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_walk_with_you);
+		gps = new GPSDistanceCalculator();
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);  
-		flag = displayGpsStatus();  
-		if (flag) {  			
-			//waiting  
-			locationListener = new MyLocationListener();  
-			locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10,locationListener);  
-		} else {  
-			//mislukt  
-		}  
+		locationListener = new MyLocationListener();  
+		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 10,locationListener);  
 		locations = new ArrayList<GPSLocation>();
-	//	locations.add(new GPSLocation(52.011790,4.723240));
 		FrameLayout framelayout = (FrameLayout) findViewById(R.id.frameLayout1);
 		GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[] {0xFF131313, 0xFF392399});
 		gd.setCornerRadius(0f);
@@ -54,36 +52,48 @@ public class WalkWithYou extends Activity {
 		framelayout.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				if(huidigeLocatie != null) {
-					locations.add(new GPSLocation(huidigeLocatie.getLatitude(), huidigeLocatie.getLongitude()));
-					Toast.makeText(context, "added location", Toast.LENGTH_LONG).show();
-					update();
+					if(!gps.locatieExists(huidigeLocatie, locations)) {
+						locations.add(new GPSLocation(huidigeLocatie.getLatitude(), huidigeLocatie.getLongitude()));
+						showToast("added location");
+						toast.show();
+						update();
+					} else {
+						showToast("locatie already exists");
+					}
 				} else {
-					Toast.makeText(context, "huidgeLocatie was null gps off?", Toast.LENGTH_SHORT).show();
+					showToast("huidgeLocatie was null gps off?");
 				}
 			}
 		});
-		updatethingy = new Handler();
-		doThing.run();
+		updateHandler = new Handler();
+		updateRunnable.run();
+	}
+	
+	public void showToast(String message) {
+		if(toast != null) {
+			toast.cancel();
+		}
+		toast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
+		toast.show();
 	}
 
-	Runnable doThing = new Runnable() {
+	Runnable updateRunnable = new Runnable() {
 		public void run() {
 			update();
-			updatethingy.postDelayed(doThing, 5000);
+			updateHandler.postDelayed(updateRunnable, 3000);
 		}
 	};
 
 	private void update() {
 		if(huidigeLocatie != null) {
-			GPSDistanceCalculator gps = new GPSDistanceCalculator();
 			int shortestDistance = 0; 
 			int i = 1;
-			String whatever = "";
-			whatever += "huidigeLocatie = " + huidigeLocatie.getLongitude() + ", " + huidigeLocatie.getLatitude() + "\n";
+			String toastText = "";
+			toastText += "huidigeLocatie = " + huidigeLocatie.getLongitude() + ", " + huidigeLocatie.getLatitude() + "\n";
 			for (GPSLocation iterativeLocation : locations) {
-				whatever += "locatie" + i+ " = " + iterativeLocation.getLongitude() + ", " + iterativeLocation.getLatitude() + "\n";
+				toastText += "locatie" + i+ " = " + iterativeLocation.getLongitude() + ", " + iterativeLocation.getLatitude() + "\n";
 				int currentDistance = gps.calculateDistanceBetweenCoordinatesInMethers(iterativeLocation, huidigeLocatie);
-				whatever += "Debug locatie 1 current distance: " + currentDistance;
+				toastText += "Debug locatie 1 current distance: " + currentDistance;
 				if (shortestDistance == 0) {
 					shortestDistance = currentDistance;
 				} else {
@@ -93,8 +103,9 @@ public class WalkWithYou extends Activity {
 				}
 				i++;
 			}
-			whatever += "shortestdistance: " + shortestDistance; 
-			Toast.makeText(this, whatever, Toast.LENGTH_LONG).show();
+			toastText += "shortestdistance: " + shortestDistance; 
+			showToast(toastText);
+
 			changeColor(shortestDistance);
 		} else {
 			//TODO basically the update comes too soon before a location has been found by the device
@@ -111,15 +122,6 @@ public class WalkWithYou extends Activity {
 		framelayout1.setBackgroundDrawable(gd);
 	}
 
-	private Boolean displayGpsStatus() {  
-		ContentResolver contentResolver = getBaseContext().getContentResolver();  
-		boolean gpsStatus = Settings.Secure.isLocationProviderEnabled(contentResolver,	LocationManager.GPS_PROVIDER);  
-		if (gpsStatus) {  
-			return true;  
-		} else {  
-			return false;  
-		}  
-	}  
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -141,19 +143,23 @@ public class WalkWithYou extends Activity {
 		public void onStatusChanged(String provider, int status, Bundle extras) {
 		}
 	}
-	
+
 	public String getColor(int power)
 	{
+		power++;
+//		power *= 4;
+		if(power > 100) {
+			power = 100;
+		}
 		String colorString = "#FF";
 		int R=(255*power)/100;
 		int G=(255*(100-power))/100; 
-		int B=0;
 		String redString = Integer.toHexString(R);
 		if(redString.length() == 1) {
 			colorString += "0";
 		}
 		colorString += redString;
-		
+
 		String greenString = Integer.toHexString(G);
 		if(greenString.length() == 1) {
 			colorString += "0";
@@ -161,5 +167,16 @@ public class WalkWithYou extends Activity {
 		colorString += greenString;
 		colorString += "00";
 		return colorString;
+	}
+
+	@Override
+	protected void onPause() {
+		super.onPause();
+		updateHandler.removeCallbacks(updateRunnable);
+	}
+	@Override 
+	protected void onResume() {
+		super.onResume();
+		updateRunnable.run();
 	}
 }  
