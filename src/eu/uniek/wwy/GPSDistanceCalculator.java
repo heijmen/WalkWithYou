@@ -19,7 +19,7 @@ public class GPSDistanceCalculator {
 	}
 	public boolean locatieExists(GPSLocation newLocation, List<GPSLocation> locaties) {
 		for(GPSLocation oldLocation : locaties) {
-			if(calculateDistanceBetweenCoordinatesInMethers(newLocation, oldLocation) >= 10) {
+			if(calculateDistanceBetweenCoordinatesInMethers(newLocation, oldLocation) <= 10) {
 				return true;
 			}
 		}

@@ -2,10 +2,8 @@ package eu.uniek.wwy;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
@@ -14,7 +12,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.Settings;
+import android.os.Vibrator;
 import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -27,11 +25,13 @@ public class WalkWithYou extends Activity {
 	private LocationListener locationListener = null;
 	private List<GPSLocation> locations;
 	private GPSLocation huidigeLocatie;
-//	private boolean flag = false;
+	//	private boolean flag = false;
 	private Handler updateHandler;
 	private GPSDistanceCalculator gps;
 	private Toast toast;
 	private GPSLocation cafetariaChao;  //27.4388 km vanaf gouda hemelsbreed  100m vanaf oudenoord 250 meter vanaf nijenoord allemaal hemelsbreed
+	private boolean debug = false;
+	private final int UPDATE_TIME = 800;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) { 
@@ -41,7 +41,7 @@ public class WalkWithYou extends Activity {
 		gps = new GPSDistanceCalculator();
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);  
 		locationListener = new MyLocationListener();  
-		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 5000, 10,locationListener);  
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10,locationListener);  
 		locations = new ArrayList<GPSLocation>();
 		locations.add(cafetariaChao);
 		FrameLayout framelayout = (FrameLayout) findViewById(R.id.frameLayout1);
@@ -55,8 +55,7 @@ public class WalkWithYou extends Activity {
 				if(huidigeLocatie != null) {
 					if(!gps.locatieExists(huidigeLocatie, locations)) {
 						locations.add(new GPSLocation(huidigeLocatie.getLatitude(), huidigeLocatie.getLongitude()));
-						showToast("added location");
-						toast.show();
+						showToast("added location");;
 						update();
 					} else {
 						showToast("locatie already exists");
@@ -69,19 +68,21 @@ public class WalkWithYou extends Activity {
 		updateHandler = new Handler();
 		updateRunnable.run();
 	}
-	
+
 	public void showToast(String message) {
-		if(toast != null) {
-			toast.cancel();
+		if(debug) {
+			if(toast != null) {
+				toast.cancel();
+			}
+			toast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
+			toast.show();
 		}
-		toast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
-		toast.show();
 	}
 
 	Runnable updateRunnable = new Runnable() {
 		public void run() {
 			update();
-			updateHandler.postDelayed(updateRunnable, 5000);
+			updateHandler.postDelayed(updateRunnable, UPDATE_TIME);
 		}
 	};
 
@@ -108,13 +109,17 @@ public class WalkWithYou extends Activity {
 			showToast(toastText);
 
 			changeColor(shortestDistance);
+			if(shortestDistance <= 10) {
+				Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+				v.vibrate(UPDATE_TIME);
+			}
 		} else {
 			//TODO basically the update comes too soon before a location has been found by the device
 		}
 	}
 
 	private void changeColor(int methers) {
-		int[] shapecolor = new int[] {getColorOnScaleOf50(methers), getColorOnScaleOf50(methers)};
+		int[] shapecolor = new int[] {getColorOnScaleOf100(methers), getColorOnScaleOf100(methers)};
 		FrameLayout framelayout1 = (FrameLayout) findViewById(R.id.frameLayout1);
 		GradientDrawable gd = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, shapecolor);
 		gd.setCornerRadius(GradientDrawable.RECTANGLE);
