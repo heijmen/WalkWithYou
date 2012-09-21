@@ -41,7 +41,7 @@ public class WalkWithYou extends Activity {
 		gps = new GPSDistanceCalculator();
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);  
 		locationListener = new MyLocationListener();  
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0,locationListener);  
+		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, UPDATE_TIME, 1, locationListener);  
 		locations = new ArrayList<GPSLocation>();
 		locations.add(cafetariaChao);
 		FrameLayout framelayout = (FrameLayout) findViewById(R.id.frameLayout1);
