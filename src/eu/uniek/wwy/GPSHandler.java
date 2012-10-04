@@ -2,9 +2,14 @@ package eu.uniek.wwy;
 
 import java.util.List;
 
-public class GPSDistanceCalculator {
+/**
+ * There is no need instantiating this class so all methods are static which gives 0.3 nano seconds performance winst per method invocation
+ */
+public final class GPSHandler {
 	
-	public int calculateDistanceBetweenCoordinatesInMethers(GPSLocation firstLocation, GPSLocation secondLocation) {	
+	private GPSHandler(){}
+	
+	public static int calculateDistanceBetweenCoordinatesInMethers(GPSLocation firstLocation, GPSLocation secondLocation) {	
 		double radius = 6371;
 		double latencyDifference = Math.toRadians(secondLocation.getLatitude() - firstLocation.getLatitude());
 		double longitudeDifference = Math.toRadians(secondLocation.getLongitude() - firstLocation.getLongitude());
@@ -17,13 +22,22 @@ public class GPSDistanceCalculator {
 		distanceInMethers *= 1000;
 		return (int) distanceInMethers;
 	}
-	public boolean locatieExists(GPSLocation newLocation, List<GPSLocation> locaties) {
+	public static boolean locationExistsInRange(int range, GPSLocation newLocation, List<GPSLocation> locaties) {
 		for(GPSLocation oldLocation : locaties) {
-			if(calculateDistanceBetweenCoordinatesInMethers(newLocation, oldLocation) <= 10) {
+			if(calculateDistanceBetweenCoordinatesInMethers(newLocation, oldLocation) <= range) {
 				return true;
 			}
 		}
 		return false;
+	}
+	public static int calculateHowManyBreadcrumbsAreInRange(int mether, GPSLocation locatie, List<GPSLocation> locations) {
+		int i = 0;
+		for(GPSLocation breadcum : locations) {
+			if(calculateDistanceBetweenCoordinatesInMethers(locatie, breadcum) <= mether) {
+				i++;
+			}
+		}
+		return i;
 	}
 
 }

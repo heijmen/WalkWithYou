@@ -1,5 +1,7 @@
 package eu.uniek.wwy;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,27 +23,45 @@ import android.widget.Toast;
 
 
 public class WalkWithYou extends Activity {
+
+	public static final String BROODKRUIMELS_LOCATION = "broodkruimels.txt";
 	private LocationManager locationManager = null;  
 	private LocationListener locationListener = null;
 	private List<GPSLocation> locations;
 	private GPSLocation huidigeLocatie;
 	//	private boolean flag = false;
 	private Handler updateHandler;
-	private GPSDistanceCalculator gps;
 	private Toast toast;
 	private GPSLocation cafetariaChao;  //27.4388 km vanaf gouda hemelsbreed  100m vanaf oudenoord 250 meter vanaf nijenoord allemaal hemelsbreed
-	private boolean debug = false;
-	private final int UPDATE_TIME = 800;
+	private boolean debug = true;
+	private final int UPDATE_TIME = 500; //== half second
+	private List<GPSLocation> broodKruimels = new ArrayList<GPSLocation>();
+	private ThomasMagEenNaamVerzinnen dao = new ThomasMagEenNaamVerzinnen();
+	private Context context = this;
+	private GPSLocation lastDroppedLocation;
 
 	@Override
-	public void onCreate(Bundle savedInstanceState) { 
+	public void onCreate(Bundle savedInstanceState) {
+
 		super.onCreate(savedInstanceState);
+		try {
+			broodKruimels = dao.getBroodkruimels(openFileInput(WalkWithYou.BROODKRUIMELS_LOCATION));
+			String broodKruimelDebugText = "broodKruimels: \n";
+			for(GPSLocation gpsLocation : broodKruimels) {
+				broodKruimelDebugText += gpsLocation.getLatitude() + "," + gpsLocation.getLongitude() + "\n";
+			}
+			showToast(broodKruimelDebugText);
+		} catch (Exception e) {
+			showToast(e.getMessage());
+			broodKruimels = new ArrayList<GPSLocation>();
+		}
 		setContentView(R.layout.activity_walk_with_you);
-		cafetariaChao = new GPSLocation(52.10164, 5.10838);
-		gps = new GPSDistanceCalculator();
+		if(debug) {
+			cafetariaChao = new GPSLocation(52.10164, 5.10838);
+		}
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);  
 		locationListener = new MyLocationListener();  
-		locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, UPDATE_TIME, 1, locationListener);  
+		locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, UPDATE_TIME, 1, locationListener);  
 		locations = new ArrayList<GPSLocation>();
 		locations.add(cafetariaChao);
 		FrameLayout framelayout = (FrameLayout) findViewById(R.id.frameLayout1);
@@ -53,10 +73,10 @@ public class WalkWithYou extends Activity {
 		framelayout.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 				if(huidigeLocatie != null) {
-					if(!gps.locatieExists(huidigeLocatie, locations)) {
+					if(!GPSHandler.locationExistsInRange(10, huidigeLocatie, locations)) {
 						locations.add(new GPSLocation(huidigeLocatie.getLatitude(), huidigeLocatie.getLongitude()));
 						showToast("added location");;
-						update();
+						updateColorBackground();
 					} else {
 						showToast("locatie already exists");
 					}
@@ -76,17 +96,47 @@ public class WalkWithYou extends Activity {
 			}
 			toast = Toast.makeText(this, message, Toast.LENGTH_SHORT);
 			toast.show();
+			String broodKruimelDebugText = "broodKruimels \n";
+			for(GPSLocation gpsLocation : broodKruimels) {
+				broodKruimelDebugText += gpsLocation.getLatitude() + "," + gpsLocation.getLongitude() + ", " + gpsLocation.getTimeCreated() + "\n";
+			}
+			
+			toast = Toast.makeText(this, broodKruimelDebugText, Toast.LENGTH_SHORT);
+			toast.show();
 		}
 	}
 
 	Runnable updateRunnable = new Runnable() {
 		public void run() {
-			update();
+			updateColorBackground();
+			
+			if(huidigeLocatie != null) {
+				if(broodKruimels == null) {
+					broodKruimels = new ArrayList<GPSLocation>();
+				}
+				if(lastDroppedLocation != null) {
+					if(GPSHandler.calculateDistanceBetweenCoordinatesInMethers(lastDroppedLocation, huidigeLocatie) > 50) {
+						GPSLocation newLocation = new GPSLocation(huidigeLocatie.getLatitude(), huidigeLocatie.getLongitude());
+						lastDroppedLocation = newLocation;
+						broodKruimels.add(newLocation);
+					}
+				} else {
+					GPSLocation newLocation = new GPSLocation(huidigeLocatie.getLatitude(), huidigeLocatie.getLongitude());
+					lastDroppedLocation = newLocation;
+					broodKruimels.add(newLocation);
+					
+				}
+				try {
+					dao.saveBroodKruimels(broodKruimels, openFileOutput(WalkWithYou.BROODKRUIMELS_LOCATION, MODE_PRIVATE));
+				} catch (Exception e) {
+					showToast(e.getMessage());
+				} 
+			}
 			updateHandler.postDelayed(updateRunnable, UPDATE_TIME);
 		}
 	};
 
-	private void update() {
+	private void updateColorBackground() {
 		if(huidigeLocatie != null) {
 			int shortestDistance = 0; 
 			int i = 1;
@@ -94,7 +144,7 @@ public class WalkWithYou extends Activity {
 			toastText += "huidigeLocatie = " + huidigeLocatie.getLongitude() + ", " + huidigeLocatie.getLatitude() + "\n";
 			for (GPSLocation iterativeLocation : locations) {
 				toastText += "locatie" + i + " = " + iterativeLocation.getLongitude() + ", " + iterativeLocation.getLatitude() + "\n";
-				int currentDistance = gps.calculateDistanceBetweenCoordinatesInMethers(iterativeLocation, huidigeLocatie);
+				int currentDistance = GPSHandler.calculateDistanceBetweenCoordinatesInMethers(iterativeLocation, huidigeLocatie);
 				toastText += "Debug locatie " + i + " current distance: " + currentDistance + "\n";
 				if (shortestDistance == 0) {
 					shortestDistance = currentDistance;
@@ -113,9 +163,7 @@ public class WalkWithYou extends Activity {
 				Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 				v.vibrate(UPDATE_TIME);
 			}
-		} else {
-			//TODO basically the update comes too soon before a location has been found by the device
-		}
+		} 
 	}
 
 	private void changeColor(int methers) {
@@ -149,7 +197,7 @@ public class WalkWithYou extends Activity {
 		public void onStatusChanged(String provider, int status, Bundle extras) {
 		}
 	}
-
+	@Deprecated
 	public int getColorOnScaleOf100(int power) {
 		power = 100 - power;
 		power++;
@@ -161,6 +209,7 @@ public class WalkWithYou extends Activity {
 		int V = 100;
 		return Color.HSVToColor(new float[] {H, S, V});
 	}
+	@Deprecated
 	public int getColorOnScaleOf50(int power) {
 		power = 50 - power;
 		power++;
@@ -168,6 +217,18 @@ public class WalkWithYou extends Activity {
 			power = 50;
 		}
 		int H = (int) (power * 2.4);
+		int S = 100;
+		int V = 100;
+		return Color.HSVToColor(new float[] {H, S, V});
+	}
+	
+	public int getAndroidColorByMethers(int power, int maxRange) {
+		power = maxRange - power;
+		power++;
+		if(power > maxRange) {
+			power = maxRange;
+		}
+		int H = (int) (power * (120 / maxRange));
 		int S = 100;
 		int V = 100;
 		return Color.HSVToColor(new float[] {H, S, V});
