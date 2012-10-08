@@ -1,14 +1,10 @@
-package eu.uniek.wwy;
+package eu.uniek.wwy.location;
 
-import java.io.Serializable;
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
-public class GPSLocation implements Serializable {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+public class GPSLocation  {
 	private double latitude, longitude;
 	private Calendar calendar;
 
@@ -26,10 +22,9 @@ public class GPSLocation implements Serializable {
 	public double getLongitude() {
 		return longitude;
 	}
-	//for debug purposes
 	public String getTimeCreated() {
-		return new SimpleDateFormat("dd-MM-yyyy:hh:mm:ss").format(calendar.getTime());
+		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy:hh:mm:ss");
+		String formattedDate = dateFormat.format(calendar.getTime());
+		return formattedDate;
 	}
-
-
 }
