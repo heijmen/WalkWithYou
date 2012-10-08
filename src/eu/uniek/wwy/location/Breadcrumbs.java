@@ -8,7 +8,7 @@ import java.util.List;
 import android.content.Context;
 import android.location.LocationManager;
 import android.util.Log;
-import eu.uniek.wwy.FileMapper;
+import eu.uniek.wwy.file.FileMapper;
 import eu.uniek.wwy.gui.WalkWithYou;
 
 public class Breadcrumbs {

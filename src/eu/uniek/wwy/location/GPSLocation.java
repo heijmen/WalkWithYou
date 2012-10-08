@@ -14,6 +14,12 @@ public class GPSLocation  {
 		this.longitude = longitude;
 		calendar = Calendar.getInstance();
 	}
+	public GPSLocation(double latitude, double longitude, Calendar calendar) {
+		super();
+		this.latitude = latitude;
+		this.longitude = longitude;
+		this.calendar = calendar;
+	}
 
 	public double getLatitude() {
 		return latitude;

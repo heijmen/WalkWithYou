@@ -1,4 +1,4 @@
-package eu.uniek.wwy;
+package eu.uniek.wwy.file;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
